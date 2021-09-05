@@ -1,0 +1,122 @@
+{% extends 'base_navbar.html' %}
+{% load static %}
+{% block content %}
+
+<div id="app">
+    <article id="shopping-cart-container">
+        <div v-if="shopping_cart.order_items.length">
+            <div id="order-item-container">
+                <h1>Shopping Cart (<% totalQuantity %>)</h1><br>
+                <div class="order-item" v-for="item in shopping_cart.order_items">
+                    <div class="order-item-image-container">
+                        <a :title="getItemTitle(item)" :href="getItemPath(item)">
+                            <img :alt="getItemTitle(item)" :src="getImagePath(item)">
+                        </a>
+                    </div>
+                    <div class="order-item-description-container">
+                        <p class="bold"> <% item.itemBrand %> </p>
+                        <p> <% item.itemCategory %> - <% item.itemGender %></p>
+                        <p> Color: <% item.itemColor %></p>
+                        <p> Size: <% item.itemSize %></p>
+                        <p> Quantity: <% item.quantity %></p><br>
+                        <p class="bold">Price: <% item.price %> $</p>
+                    </div>
+                    <div class="order-item-quantity">
+                        <div class="select-quantity">
+                            <select v-model="item.quantity" @click="changeItemQuantity(item.id, item.quantity)">
+                                <option v-for="index in item.quantityInStock" :value="index"><% index %></option>
+                            </select>
+                        </div>
+                        <button accesskey="R" class="btn-remove" @click="changeItemQuantity(item.id, 0)">Remove</button>
+                    </div>
+                </div>
+            </div>
+            <div id="price-container">
+                <h1>Total</h1>
+                <div class="custom-table">
+                    <table>
+                        <tr>
+                            <td>Subtotal</td>
+                            <td><% shopping_cart.totalPrice %> $</td>
+                        </tr>
+                        <tr>
+                            <td>Shipping</td>
+                            <td>0.00 $</td>
+                        </tr>
+                        <tr>
+                            <td>Total</td>
+                            <td><% shopping_cart.totalPrice %> $</td>
+                        </tr>
+                    </table>
+                </div>
+                <button accesskey="P" class="btn-buy" @click="purchase()">Purchase</button>
+            </div>
+        </div>
+        <div v-else id="empty-shopping-cart-container">
+            <h1>No items in the shopping cart</h1>
+        </div>
+    </article>
+
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        delimiters: ["<%", "%>"],
+        data: {
+            shopping_cart: '',
+        },
+        created() {
+            this.loadOrderItems()
+        },
+        computed: {
+            totalQuantity() {
+                total = 0;
+                if (this.shopping_cart) {
+                    for (var i = 0; i < this.shopping_cart.order_items.length; i++) {
+                        total += this.shopping_cart.order_items[i].quantity;
+                    }
+                }
+                return total
+            }
+        },
+        methods: {
+            loadOrderItems() {
+                axios.get('/api/shopping-cart/')
+                    .then(response => {
+                        this.shopping_cart = response.data.shopping_cart
+                    })
+            },
+            getImagePath(item) {
+                return "/static/images/item_pics/" + item.itemImage
+            },
+            changeItemQuantity(item_id, quantity) {
+                let data = new FormData();
+                data.append("order_item_id", item_id)
+                data.append("quantity", quantity)
+                data.append("csrfmiddlewaretoken", '{{csrf_token}}')
+                axios.post('/api/order-item/', data)
+                    .then(response => {
+                        this.loadOrderItems()
+                    })
+            },
+            purchase() {
+                let data = new FormData();
+                data.append("csrfmiddlewaretoken", '{{csrf_token}}')
+                axios.post('/api/purchase/', data)
+                    .then(response => {
+                        this.loadOrderItems()
+                    })
+            },
+            getItemPath(item) {
+                return "/item/" + item.itemSlug
+            },
+            getItemTitle(item) {
+                return item.itemCategory + ' ' + item.itemBrand + ' ' + item.itemGender
+            }
+        }
+    })
+</script>
+
+
+{% endblock %}

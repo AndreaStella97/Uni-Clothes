@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<article class="center">
+    <h1>Logged out!</h1>
+    <p>Thank you for using <span style="font-weight: bold">Star Store</span></p>
+    <a href="{% url 'login'%}" accesskey="L">
+        <button class="btn-green">Log in again</button>
+    </a>
+</article>
+{% endblock %}

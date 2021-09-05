@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <title>Uni Clothes</title>
+        <!-- Vue js -->
+        <script src="https://unpkg.com/vue"></script>
+        <!-- FontAwesome -->
+        <script src="https://kit.fontawesome.com/f2bdb157c9.js" crossorigin="anonymous"></script>
+        <!-- Axios -->
+        <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+        <link type="text/css" rel="stylesheet" href="{% static 'css/main.css' %}">
+    </head>
+    <body>
+        <header id="header">
+            <img src="{% static 'images/icons/logo.png' %}">
+        </header>
+
+        {% block navbar %}
+        {% endblock %}
+
+        {% block content %}
+        {% endblock %}
+
+        <footer id="footer">
+            <a href="https://it-it.facebook.com/" accesskey="F" title="facebook" target="_blank">
+                <i class="fab fa-facebook-f fa-2x">&nbsp&nbsp</i>
+            </a>
+            <a href="https://www.instagram.com/" accesskey="I" title="instagram" target="_blank">
+                <i class="fab fa-instagram fa-2x">&nbsp&nbsp</i>
+            </a>
+            <a href="mailto:andrea.stella3797@gmail.com" accesskey="M" title="e-mail" target="_blank">
+                <i style="vertical-align: center" class="fas fa-envelope fa-2x"></i>
+            </a>
+            <p style="float: right">&copy; Uni Clothes</p>
+        </footer>
+    </body>
+</html>

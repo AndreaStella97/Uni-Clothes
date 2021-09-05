@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<article>
+    <form class="loginForm" method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <h1>Login</h1>
+        <p>Enter your user data to access your account</p><br>
+        {{ form.username.label_tag }}
+        {{ form.username }}
+
+        {{ form.password.label_tag }}
+        {{ form.password }}
+
+        <input accesskey="L" type="submit" value="Login"/>
+        <input type="hidden" name="next" value="{{ next }}"/>
+
+        {% if form.errors %}
+        <p class="alert">Your username and password didn't match. Please try again.</p>
+        {% endif %}
+        {% if next %}
+        <p class="alert">Please login to see this page.</p>
+        {% endif %}
+    </form>
+</article>
+
+{% endblock %}

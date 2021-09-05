@@ -1,0 +1,125 @@
+{% extends 'base_navbar.html' %}
+{% load static %}
+{% block content %}
+
+<div id="app">
+    <article class="item-detail-container">
+        <div class="item-detail-image">
+            <img alt="{{item.brand}} {{item.category}}  {{item.gender}}"
+                 title="{{item.brand}} {{item.category}}  {{item.gender}}"
+                 src="{% static 'images/item_pics/' %}{{item.image.name}}">
+        </div>
+
+        <div class="item-detail-description">
+            <header class="item-detail-title">
+                <h1>{{item.brand}}</h1>
+                <h1>{{item.category}}</h1>
+                <h2 style="font-weight: normal">{{item.price}} $</h2>
+            </header>
+
+            <p>Color: <% itemVariantSelected.color %></p>
+            {% for item_variant in item_variants %}
+            <div style="background-color: {{ item_variant.color }}"
+                 title="{{ item_variant.color }}"
+                 :class="[('{{item_variant.color}}' == itemVariantSelected.color) ? 'color-square-selected' : 'color-square']"
+                 @click="updateItemVariant('{{item_variant.id}}', '{{item_variant.color}}')">
+            </div>
+            {% endfor %}
+
+            <p class="alert" v-if="messageAlert"><% messageAlert %></p>
+            <p v-else><br></p>
+
+            <div class="select-size">
+                <select v-model="itemInStockSelected" @click="resetAddToCart">
+                    <option disabled="disabled" selected="selected" value="">Select Size</option>
+                    <option v-for="item in itemsInStock" :value="item"><% item.size %></option>
+                </select>
+            </div>
+
+            <button accesskey="A" value="Add To Cart" :class="[addToCartDisabled ? 'btn-disabled' : 'btn-green']"
+                    @click="addToCart()" :disabled="addToCartDisabled">
+                Add To Cart <span v-if="cartCounter">(<% cartCounter %>)</span>
+            </button>
+
+            <div :class="dropDownTextVisible ? 'dropdown-open' : 'dropdown-close'">
+                <button accesskey="D" @click="changeDropDownTextVisibility()">
+                    Description
+                    <i :class="dropDownTextVisible ? 'fas fa-chevron-up fa-sm' : 'fas fa-chevron-down fa-sm'"
+                       style="color: #353535; float: right; margin-top: 4px"></i>
+                </button>
+                <div class="dropdown-text-container">
+                    <p>{{item.description}}</p>
+                </div>
+            </div>
+        </div>
+    </article>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        delimiters: ["<%", "%>"],
+        data: {
+            userIconHover: false,
+            dropDownTextVisible: false,
+            itemVariantSelected: {
+                id: "{% with item_variants|first as first_item %}{{ first_item.id }}{% endwith %}",
+                color: "{% with item_variants|first as first_item %}{{ first_item.color }}{% endwith %}"
+            },
+            itemsInStock: '',
+            itemInStockSelected: '',
+            messageAlert: '',
+            addToCartDisabled: false,
+            cartCounter: 0
+        },
+        created() {
+            this.loadSizes()
+        },
+        methods: {
+            changeDropDownTextVisibility() {
+                this.dropDownTextVisible ? this.dropDownTextVisible = false : this.dropDownTextVisible = true
+            },
+            resetAddToCart() {
+                this.addToCartDisabled = false;
+                this.messageAlert = ''
+            },
+            updateItemVariant(id, color) {
+                this.itemVariantSelected.id = id;
+                this.itemVariantSelected.color = color;
+                this.loadSizes();
+            },
+            loadSizes() {
+                params = {
+                    variant_id: this.itemVariantSelected.id
+                }
+                axios.get('/api/items-in-stock/', {params: params})
+                    .then(response => {
+                        this.itemsInStock = response.data.items_in_stock
+                        this.itemInStockSelected = ''
+                        this.resetAddToCart()
+                    })
+            },
+            addToCart() {
+                if (this.itemInStockSelected == '') {
+                    this.messageAlert = 'Please, select a size'
+                } else {
+                    this.messageAlert = ''
+                    let data = new FormData();
+                    data.append("item_id", this.itemInStockSelected.id)
+                    data.append("csrfmiddlewaretoken", '{{csrf_token}}')
+                    axios.post('/api/shopping-cart/', data)
+                        .then(response => {
+                            if (response.data == "out_of_stock") {
+                                this.messageAlert = 'Size out of stock'
+                                this.addToCartDisabled = true
+                            } else this.cartCounter++
+                        })
+                }
+            }
+
+        }
+    })
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block navbar %}
+<nav class="navbar" id="navbar">
+    <a class="navbar-icon-left" title="clothing list" accesskey="C" href="{% url 'items_list_view' %}">
+        <i class="fas fa-store fa-2x" href=""></i>
+    </a>
+    <a class="navbar-icon-right" title="shopping cart" accesskey="S" href="{% url 'shopping_cart_view' %}"><i class="fas fa-shopping-cart fa-2x"></i></a>
+    <div class="navbar-icon-right" @mouseover="userIconHover = true" @mouseleave="userIconHover = false">
+        <div :class="userIconHover ? 'collapseIconHover' : 'collapseIcon'">
+            <i class="fas fa-user fa-2x"></i>
+        </div>
+        <div class="collapse" v-if="userIconHover">
+            <p class="collapseTitle">Hi {{user.get_short_name}}!</p>
+            <a href="{% url 'logout' %}" class="collapseLink">Exit</a>
+        </div>
+    </div>
+</nav>
+<script>
+    var navbar = new Vue({
+        el: '#navbar',
+        delimiters: ["<%","%>"],
+        data: {
+            userIconHover: false,
+        }
+    })
+</script>
+{% endblock %}
+

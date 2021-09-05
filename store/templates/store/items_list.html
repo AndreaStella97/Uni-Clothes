@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<div id="app">
+    <nav class="navbar">
+        <button v-for="gen, index in genders" :accesskey="index+1"
+                :class="[(gender==gen) ? 'btn-white-selected' : 'btn-white']"
+                @click="updateGender(gen); loadItems()"><% gen %>
+        </button>
+        <a class="navbar-icon-right" accesskey="s" title="shopping cart" href="{% url 'shopping_cart_view' %}">
+            <i class="fas fa-shopping-cart fa-2x"></i>
+        </a>
+        <div class="navbar-icon-right" @mouseover="userIconHover = true" @mouseleave="userIconHover = false">
+            <div :class="userIconHover ? 'collapseIconHover' : 'collapseIcon'">
+                <i class="fas fa-user fa-2x"></i>
+            </div>
+            <div class="collapse" v-if="userIconHover">
+                <p class="collapseTitle">Hi {{user.get_short_name}}!</p>
+                <a href="{% url 'logout' %}" class="collapseLink">Exit</a>
+            </div>
+        </div>
+    </nav>
+    <nav class="navbar">
+        <button v-for="cat in categories" :class="[(category==cat) ? 'btn-filter-selected' : 'btn-filter']"
+                @click="updateCategory(cat); loadItems()"> <% cat %>
+        </button>
+    </nav>
+
+    <article id="item-list-container">
+        <div class="item-list-cart" v-for="item in items">
+            <a :title="getItemTitle(item)" :href="getItemPath(item)">
+                <div class="item-list-image">
+                    <img :alt="getItemTitle(item)" :src="getImagePath(item)">
+                </div>
+                <header class="item-list-description">
+                    <p><% item.brand %></p>
+                    <p><% item.category %></p>
+                    <p><% item.price %> $</p>
+                </header>
+            </a>
+        </div>
+    </article>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        delimiters: ["<%", "%>"],
+        data: {
+            userIconHover: false,
+            categories: ['All', 'T-Shirt', 'Shirt', 'Sweater', 'Sweatshirt', 'Jeans', 'Pants', 'Jacket', 'Socks'],
+            genders: ['Man', 'Woman'],
+            gender: 'Man',
+            category: 'All',
+            items: [],
+
+        },
+        created() {
+            this.loadItems()
+        },
+        methods: {
+            loadItems() {
+                params = {
+                    gender: this.gender,
+                    category: this.category
+                }
+                axios.get('/api/items-list/', {params: params})
+                    .then(response => {
+                        this.items = response.data.items
+                    })
+            },
+            updateGender(gender) {
+                this.gender = gender
+            },
+            updateCategory(category) {
+                this.category = category
+            },
+            getImagePath(item) {
+                return "/static/images/item_pics/" + item.image
+            },
+            getItemPath(item) {
+                return "/item/" + item.slug
+            },
+            getItemTitle(item) {
+                return item.category + ' ' + item.brand + ' ' + item.gender
+            }
+        }
+    })
+</script>
+{% endblock %}
